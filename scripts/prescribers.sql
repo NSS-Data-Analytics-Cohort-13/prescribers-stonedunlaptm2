@@ -61,15 +61,40 @@ ORDER BY drug_cost DESC;
 --Answer: Cost: 104264066.35	"INSULIN GLARGINE,HUM.REC.ANLOG"
 
 --3b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.**
-SELECT (total_drug_cost*total_30_day_fill_count)/30 AS cost_per_day
+SELECT ROUND(p.total_drug_cost/30,2) AS cost_per_day, d.generic_name
 FROM prescription AS p
 INNER JOIN drug as d
 ON p.drug_name=d.drug_name
-GROUP BY d.generic_name
+GROUP BY d.generic_name, p.total_drug_cost, p.total_30_day_fill_count
 ORDER BY cost_per_day DESC;
+--Answer: Cost:94305.81	"PIRFENIDONE"
+
 
 --4a. For each drug in the drug table, return the drug name and then a column named 'drug_type' which says 'opioid' for drugs which have opioid_drug_flag = 'Y', says 'antibiotic' for those drugs which have antibiotic_drug_flag = 'Y', and says 'neither' for all other drugs. **Hint:** You may want to use a CASE expression for this. See https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-case/ 
+
+SELECT 
+drug_name,
+opioid_drug_flag,
+antibiotic_drug_flag,
+CASE WHEN opioid_drug_flag= 'Y' THEN 'opioid' 
+	  WHEN antibiotic_drug_flag ='Y' THEN 'antibiotic'
+	 ELSE 'null' END AS drug_type
+FROM drug;
+
 --4b. Building off of the query you wrote for part a, determine whether more was spent (total_drug_cost) on opioids or on antibiotics. Hint: Format the total costs as MONEY for easier comparision.
+SELECT COUNT (d.opioid_drug_flag, d.antibiotic_drug_flag)
+d.drug_name,
+p.total_drug_cost,
+CASE WHEN opioid_drug_flag= 'Y' THEN 'opioid' 
+	  WHEN antibiotic_drug_flag ='Y' THEN 'antibiotic'
+	 ELSE 'null' END AS drug_type
+FROM prescription AS p
+INNER JOIN drug as d
+ON d.drug_name=p.drug_name
+GROUP BY d.drug_name,
+p.total_drug_cost;
+
+
 --5a. How many CBSAs are in Tennessee? **Warning:** The cbsa table contains information for all states, not just Tennessee.
 --5b. Which cbsa has the largest combined population? Which has the smallest? Report the CBSA name and total population.
 --5c. What is the largest (in terms of population) county which is not included in a CBSA? Report the county name and population.
